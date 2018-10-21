@@ -2,6 +2,8 @@ package com.krish.location.controllers;
 
 import java.util.List;
 
+import javax.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -10,7 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.krish.location.entities.Location;
+import com.krish.location.repos.LocationRepository;
 import com.krish.location.service.LocationService;
+import com.krish.location.util.EmailUtil;
+import com.krish.location.util.ReportUtil;
 
 
 @Controller
@@ -18,6 +23,18 @@ public class LocationController {
 	
 	@Autowired
 	LocationService service;
+	
+	@Autowired
+	EmailUtil emailUtil;
+	
+	@Autowired
+	ReportUtil reportUtil;
+	
+	@Autowired
+	LocationRepository repo;
+	
+	@Autowired
+	ServletContext sc;
 	
 	@RequestMapping("/showCreate")
 	public String showCreate() {
@@ -30,6 +47,7 @@ public class LocationController {
 		Location saveLocation = service.saveLocation(location);
 		String msg = "Location saved with ID:"+saveLocation.getId();
 		modelMap.addAttribute("msg", msg);
+		emailUtil.sendEmail("springmtest28@gmail.com", "Location Saved", "Location saved, pandaga chesuko inka");
 		return "createLocation";
 		
 	}
@@ -65,5 +83,13 @@ public class LocationController {
 		List<Location> locations = service.getAllLocations();
 		modelMap.addAttribute("locations", locations);
 		return "displayLocations";
+	}
+	
+	@RequestMapping("/generateReport")
+	public String generateReport() {
+		List<Object[]> data = repo.findTypeAndTypeCount();
+		String path = sc.getRealPath("/");
+		reportUtil.generatePieChar(path, data);
+		return "report";
 	}
 }
